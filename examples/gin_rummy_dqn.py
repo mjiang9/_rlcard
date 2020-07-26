@@ -24,7 +24,7 @@ env.game.settings.print_settings()
 # Set the iterations numbers and how frequently we evaluate/save plot
 evaluate_every = 100
 evaluate_num = 100  # mahjong_dqn has 1000
-episode_num = 1000  # mahjong_dqn has 100000
+episode_num = 2000  # mahjong_dqn has 100000
 
 # The initial memory size
 memory_init_size = 1000
@@ -33,7 +33,7 @@ memory_init_size = 1000
 train_every = 1
 
 # The paths for saving the logs and learning curves
-log_dir = './experiments/gin_rummy_dqn_result/'
+log_dir = './experiments/gin_rummy_dqn_result_256/'
 
 # Set a global seed
 set_global_seed(0)
@@ -48,7 +48,7 @@ with tf.Session() as sess:
                      replay_memory_init_size=memory_init_size,
                      train_every=train_every,
                      state_shape=env.state_shape,
-                     mlp_layers=[512, 512])
+                     mlp_layers=[256, 256])# [512, 512])
 
     random_agent = RandomAgent(action_num=eval_env.action_num)
 

@@ -8,23 +8,43 @@
 
 import tensorflow as tf
 import os
+print(os.getcwd())
 
-import rlcard
+# import rlcard
+import sys
+sys.path.append("..")
+# import rlcard
+# from _rlcard.rlcard.envs.registration import make
+from _rlcard.rlcard.envs.gin_rummy import GinRummyEnv
+
 
 from rlcard.agents import NFSPAgent
 from rlcard.agents import RandomAgent
 from rlcard.utils import set_global_seed, tournament
 from rlcard.utils import Logger
+from rlcard.models.gin_rummy_rule_models import GinRummyNoviceRuleAgent # changed
+
+config = {
+        'allow_step_back': False,
+        'allow_raw_data': False,
+        'single_agent_mode' : False,
+        'active_player' : 0,
+        'record_action' : False,
+        'seed': 0,
+        'env_num': 1,
+        }
 
 # Make environment
-env = rlcard.make('gin-rummy', config={'seed': 0})
-eval_env = rlcard.make('gin-rummy', config={'seed': 0})
+# env = make('gin-rummy', config={'seed': 0}) # changed
+# eval_env = make('gin-rummy', config={'seed': 0}) # changed
+env = GinRummyEnv(config=config)
+eval_env = GinRummyEnv(config=config)
 env.game.settings.print_settings()
 
 # Set the iterations numbers and how frequently we evaluate/save plot
 evaluate_every = 100
 evaluate_num = 100  # mahjong has 1000
-episode_num = 1000  # mahjong has 100000
+episode_num = 4000  # mahjong has 100000
 
 # The initial memory size
 memory_init_size = 1000
@@ -33,7 +53,12 @@ memory_init_size = 1000
 train_every = 64
 
 # The paths for saving the logs and learning curves
-log_dir = './experiments/gin_rummy_nfsp_result/'
+rl_lr = 0.01
+sl_lr = 0.005
+i = 128
+log_dir = './experiments/gr_nfsp_128_' + str(rl_lr) + '_' + str(sl_lr) + '_4_4000/'
+layerlist=[128]
+print(env.state_shape)
 
 # Set a global seed
 set_global_seed(0)
@@ -49,18 +74,18 @@ with tf.Session() as sess:
                           scope='nfsp' + str(i),
                           action_num=env.action_num,
                           state_shape=env.state_shape,
-                          hidden_layers_sizes=[512, 1024, 2048, 1024, 512],
+                          hidden_layers_sizes=layerlist, # [512, 1024, 2048, 1024, 512],
                           anticipatory_param=0.5,
                           batch_size=256,
-                          rl_learning_rate=0.00005,
-                          sl_learning_rate=0.00001,
+                          rl_learning_rate=rl_lr, # 0.00005,
+                          sl_learning_rate=sl_lr, # 0.00001,
                           min_buffer_size_to_learn=memory_init_size,
                           q_replay_memory_size=int(1e5),
                           q_replay_memory_init_size=memory_init_size,
                           train_every = train_every,
                           q_train_every=train_every,
                           q_batch_size=256,
-                          q_mlp_layers=[512, 1024, 2048, 1024, 512])
+                          q_mlp_layers=layerlist)# [512, 1024, 2048, 1024, 512])
         agents.append(agent)
     random_agent = RandomAgent(action_num=eval_env.action_num)
     env.set_agents(agents)
@@ -113,7 +138,7 @@ with tf.Session() as sess:
     logger.plot('NFSP')
 
     # Save model
-    save_dir = 'models/gin_rummy_nfsp'
+    save_dir = 'gin_rummy_nfsp4'
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     saver = tf.train.Saver()

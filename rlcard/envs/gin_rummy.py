@@ -21,7 +21,7 @@ class GinRummyEnv(Env):
         self.name = 'gin-rummy'
         self.game = Game()
         super().__init__(config=config)
-        self.state_shape = [5, 52]
+        self.state_shape = [4, 52]#[5, 52] changed
 
     def _extract_state(self, state):  # 200213 don't use state ???
         ''' Encode state
@@ -38,7 +38,7 @@ class GinRummyEnv(Env):
                              unknown cards (likewise)  # is this needed ??? 200213
         '''
         if self.game.is_over():
-            obs = np.array([self._utils.encode_cards([]) for _ in range(5)])
+            obs = np.array([self._utils.encode_cards([]) for _ in range(4)]) # changed
             extracted_state = {'obs': obs, 'legal_actions': self._get_legal_actions()}
         else:
             discard_pile = self.game.round.dealer.discard_pile
@@ -54,7 +54,8 @@ class GinRummyEnv(Env):
             dead_cards_rep = self._utils.encode_cards(dead_cards)
             known_cards_rep = self._utils.encode_cards(known_cards)
             unknown_cards_rep = self._utils.encode_cards(unknown_cards)
-            rep = [hand_rep, top_discard_rep, dead_cards_rep, known_cards_rep, unknown_cards_rep]
+            rep = [hand_rep, top_discard_rep, dead_cards_rep, known_cards_rep] #, unknown_cards_rep] # changed
+            #TODO: Add current number of melds, current deadwood points
             obs = np.array(rep)
             extracted_state = {'obs': obs, 'legal_actions': self._get_legal_actions()}
         return extracted_state
